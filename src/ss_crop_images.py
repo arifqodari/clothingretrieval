@@ -88,7 +88,7 @@ def crop_method2(image):
 
 
 def crop(image, cat=None):
-    special_cats = ('bag', 'shoes')
+    special_cats = ('bag', 'shoes', 'accessory')
 
     if cat in special_cats:
         return crop_method2(image)

@@ -1,0 +1,95 @@
+import os
+import glob
+import argparse
+import dlib
+import numpy as np
+import cv2
+
+from skimage import io
+from sklearn import cross_validation as crosval
+
+import features as feat
+import utils as util
+
+
+def load_data(photo_dir, anno_dir, cat_ids=[1, 2, 3, 4, 5, 6, 7, 8, 9]):
+    """
+    load annotation file and return the target
+    """
+
+    # load label dictionary and find keys that related to cat_id
+    label_dict = util.get_label_dictionary()
+    labels = [key for key in label_dict.keys() if label_dict[key] in cat_ids]
+
+    # get list of filenames
+    filenames = os.listdir(anno_dir)
+    targets = []
+    images = []
+
+    for i, target_filename in enumerate(filenames):
+
+        image_path = os.path.join(photo_dir, target_filename.split('.')[0] + '.jpg')
+        target_path = os.path.join(anno_dir, target_filename)
+        if (not os.path.isfile(target_path)) or (not os.path.isfile(image_path)):
+            continue
+
+        # load pixel-wise annotation
+        pixel_class = feat.load_pixel_annotations(target_path)
+
+        # create label mask
+        mask = np.zeros(pixel_class.shape, dtype='uint8')
+        for label in labels:
+            mask[pixel_class == label] = 255
+
+        # get contours
+        edges = cv2.Canny(mask, 50, 100)
+        contours, _ = cv2.findContours(edges, mode=cv2.cv.CV_RETR_TREE, method=cv2.cv.CV_CHAIN_APPROX_SIMPLE)
+        if len(contours) == 0:
+            continue
+
+        # get bounding rectangle
+        x,y,w,h = cv2.boundingRect(np.vstack(contours))
+        rect = [dlib.rectangle(left=x, top=y, right=x+w, bottom=y+h)]
+
+        targets.append(rect)
+        image = io.imread(image_path)
+        image = cv2.GaussianBlur(image, (5,5), 0)
+        images.append(image)
+
+    return images, targets
+
+
+if __name__ == "__main__":
+
+    # argument parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--photo-dir', help='input directory')
+    parser.add_argument('--anno-dir', help='input directory')
+    parser.add_argument('--model-filename', help='output directory')
+    args = parser.parse_args()
+
+    # load data
+    X, y = load_data(args.photo_dir, args.anno_dir)
+
+    # split the data
+    test_ratio = 0.2
+    X_train, X_test, y_train, y_test = crosval.train_test_split(X, y, test_size=test_ratio, random_state=0)
+
+    # set training options
+    options = dlib.simple_object_detector_training_options()
+    options.C = 3
+    options.num_threads = 6
+    options.be_verbose = True
+
+    # perform training
+    detector = dlib.train_simple_object_detector(X_train, y_train, options)
+
+    # save the model
+    detector.save(args.model_filename)
+
+    # testing
+    print("")  # Print blank line to create gap from previous output
+    print("Training accuracy: {}".format(
+        dlib.test_simple_object_detector(X_train, y_train, detector)))
+    print("Testing accuracy: {}".format(
+        dlib.test_simple_object_detector(X_test, y_test, detector)))
