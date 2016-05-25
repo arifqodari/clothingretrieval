@@ -31,10 +31,9 @@ def load_data(photo_dir, anno_dir, bg_cat_id=0):
         pixel_class = feat.load_pixel_annotations(target_path)
 
         # create label mask
-        # mask = np.ones(pixel_class.shape, dtype='uint8') * 255
-        # mask[pixel_class == bg_cat_id] = 0
-        mask = np.zeros(pixel_class.shape, dtype='uint8')
-        mask[pixel_class == 7] = 255
+        mask = np.ones(pixel_class.shape, dtype='uint8') * 255
+        mask[pixel_class == bg_cat_id] = 0
+        io.imsave('data/interim/' + target_filename + '.jpg', mask)
 
         # get contours
         edges = cv2.Canny(mask, 50, 100)
@@ -44,8 +43,6 @@ def load_data(photo_dir, anno_dir, bg_cat_id=0):
 
         # get bounding rectangle
         x,y,w,h = cv2.boundingRect(np.vstack(contours))
-        if w < 400 or h < 400:
-            continue
         rect = [dlib.rectangle(left=x, top=y, right=x+w, bottom=y+h)]
 
         targets.append(rect)
@@ -71,7 +68,7 @@ if __name__ == "__main__":
         y += yy
 
     # split the data
-    test_ratio = 0.4
+    test_ratio = 0.1
     X_train, X_test, y_train, y_test = crosval.train_test_split(X, y, test_size=test_ratio, random_state=0)
 
     # set training options
