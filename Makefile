@@ -8,6 +8,7 @@ BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 VER = v5
 UNARY = unary_$(VER)
 CRF = crf_$(VER)
+OD = OD_$(VER)
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -38,13 +39,14 @@ download_images:
 	python src/download_images.py --csv data/raw/$(group)/csv/query_result_$(cat).csv --out-dir data/raw/$(group)/images/$(cat)
 
 od_train:
-	# python src/od_train.py --anno-dir data/raw/ccp/annotations/csv --photo-dir data/raw/ccp/photos/ --model-filename data/interim/od/detector.pkl
+	mkdir -p models/$(OD)
+	python src/od_train.py --anno-dir data/raw/ccp/annotations/csv --photo-dir data/raw/ccp/photos/ --model-filename models/$(OD)/detector.pkl
 	# python src/od_train.py --anno-dirs data/raw/ccp/annotations/csv data/raw/cfpd/annotations/csv --photo-dirs data/raw/ccp/photos/ data/raw/cfpd/images --model-filename data/interim/od/detector.pkl
 	# python src/od_train.py --anno-dirs data/raw/ccp/annotations/csv --photo-dirs data/raw/ccp/photos/ --model-filename data/interim/od/detector.pkl
-	python src/od_train.py --anno-dirs data/raw/cfpd/annotations/csv --photo-dirs data/raw/cfpd/images --model-filename data/interim/od/detector.pkl
+	# python src/od_train.py --anno-dirs data/raw/cfpd/annotations/csv --photo-dirs data/raw/cfpd/images --model-filename data/interim/$(OD)/detector.pkl
 
 od_detect:
-	python src/od_detect.py --model-filename data/interim/od/detector.pkl --image-path $(image)
+	python src/od_detect.py --model-filename models/$(OD)/detector.pkl --image-path $(image)
 
 ccp_crop_person:
 	mkdir -p data/raw/ccp/cropped_photos
