@@ -13,6 +13,7 @@ from pystruct import utils as psutil
 
 import features as feat
 import utils as util
+import crfrnn.fg_prediction as fg
 
 
 PROJECT_DIR = os.path.join(os.path.dirname(__file__), os.pardir)
@@ -28,9 +29,9 @@ if __name__ == "__main__":
     parser.add_argument('--image-path', help='image filename')
     args = parser.parse_args()
 
-    # read image and compute superpixels
-    image = io.imread(args.image_path)
-    sps = feat.compute_superpixels(image, 300)
+    # # read image and compute superpixels
+    # image = io.imread(args.image_path)
+    # sps = feat.compute_superpixels(image, 300)
 
     # prepare gabor kernels
     gabor_kernels = feat.prepare_gabor_kernels(gabor_freqs=[0.2])
@@ -38,8 +39,14 @@ if __name__ == "__main__":
     # prepare face detectors
     face_detectors = feat.prepare_face_detectors()
 
+    # mask
+    image, fg_mask = fg.predict(args.image_path, os.path.join(PROJECT_DIR, 'src/crfrnn/TVG_CRFRNN_COCO_VOC.caffemodel'), os.path.join(PROJECT_DIR, 'src/crfrnn/TVG_CRFRNN_new_deploy.prototxt'))
+
+    # compute superpixels
+    sps = feat.compute_superpixels(image, 300)
+
     # extract features from test image
-    unary_features = feat.compute_unary_features(image, sps, gabor_kernels, face_detectors)
+    unary_features = feat.compute_unary_features(image, sps, gabor_kernels, face_detectors, fg_mask)
     if unary_features is None:
         print "face is not detected"
         exit()
