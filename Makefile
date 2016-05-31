@@ -8,7 +8,7 @@ BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 VER = v5
 UNARY = unary_$(VER)
 CRF = crf_$(VER)
-OD = OD_$(VER)
+OD = od_$(VER)
 
 #################################################################################
 # COMMANDS                                                                      #
