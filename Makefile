@@ -66,18 +66,17 @@ cfpd_get_annotations:
 
 cfpd_crop_person:
 	mkdir -p data/raw/cfpd/cropped_images
-	mkdir -p data/raw/cfpd/annotations/cropped_csv
-	python src/crop_person.py --anno-dir data/raw/cfpd/annotations/csv --photo-dir data/raw/cfpd/images/ --output-photo-dir data/raw/cfpd/cropped_images/ --output-anno-dir data/raw/cfpd/annotations/cropped_csv --max-size 500,200
+	mkdir -p data/raw/cfpd/annotations/cropped_png
+	python src/crop_person.py --anno-dir data/raw/cfpd/annotations/png --photo-dir data/raw/cfpd/images/ --output-photo-dir data/raw/cfpd/cropped_images/ --output-anno-dir data/raw/cfpd/annotations/cropped_png --max-size 375,150
 
 cfpd_remove_crop_person:
 	rm -r data/raw/cfpd/cropped_images
-	rm -r data/raw/cfpd/annotations/cropped_csv
+	rm -r data/raw/cfpd/annotations/cropped_png
 
 ss_crop_images:
-	mkdir -p data/interim/$(cat)
-	# mkdir -p data/raw/ss/cropped_images
-	# mkdir -p data/raw/ss/cropped_images/$(cat)
-	python src/ss_crop_images.py --inp-dir data/raw/ss/images/$(cat) --out-dir data/interim/$(cat) --cat $(cat)
+	mkdir -p data/raw/ss/cropped_images
+	mkdir -p data/raw/ss/cropped_images/$(cat)
+	python src/ss_crop_images.py --inp-dir data/raw/ss/images/$(cat) --out-dir data/raw/ss/cropped_images/$(cat) --cat $(cat)
 
 ss_remove_cropped_images:
 	rm -r data/raw/ss/cropped_images/$(cat)
