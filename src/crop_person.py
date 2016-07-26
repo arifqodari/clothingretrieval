@@ -28,7 +28,7 @@ def crop_person(anno_dir, photo_dir, output_photo_dir, output_anno_dir, size=Non
 
             # load image and label
             image = io.imread(image_path)
-            pixel_class = feat.load_pixel_annotations(csv_path)
+            pixel_class = io.imread(csv_path)
 
             # create mask
             mask = np.zeros(pixel_class.shape, dtype='uint8')
